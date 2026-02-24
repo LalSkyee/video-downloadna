@@ -27,9 +27,24 @@ app.get("/formats", (req, res) => {
     data += chunk;
   });
 
-  process.on("close", () => {
+  process.on("close", (code) => {
 
-    const info = JSON.parse(data);
+  if (!data) {
+    return res.status(500).json({ error: "yt-dlp returned empty data" });
+  }
+
+  let info;
+
+  try {
+    info = JSON.parse(data);
+  } catch (err) {
+    console.log("Invalid JSON from yt-dlp:", data);
+    return res.status(500).json({ error: "yt-dlp failed to parse JSON" });
+  }
+
+  if (!info || !info.formats) {
+    return res.status(500).json({ error: "No formats found" });
+  }
 
  const bestFormats = {};
 
